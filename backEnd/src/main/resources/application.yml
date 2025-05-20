@@ -1,0 +1,59 @@
+#spring:
+#  jpa:
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: update
+#    properties:
+#      hibernate:
+#        format_sql: true
+#    defer-datasource-initialization: true
+#    database-platform: org.hibernate.dialect.MariaDBDialect
+#  datasource:
+#    url: jdbc:mariadb://localhost:3306/db25109
+#    driver-class-name: org.mariadb.jdbc.Driver
+#    username: dbid251
+#    password: dbpass251
+
+spring:
+  datasource:
+      driver-class-name: org.h2.Driver
+      url: 'jdbc:h2:mem:test'   # H2 DB 연결 주소 (In-Memory Mode)
+      username: sa      # H2 DB 접속 ID (사용자 지정)
+      password:      # H2 DB 접속 PW (사용자 지정)
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  sql:
+    init:
+      mode: always
+
+  web:
+    resources:
+      static-locations: classpath:/META-INF/resources/, classpath:/META-INF/resources/webjars/
+
+jwt:
+  issuer: yjj1544@gmail.com
+  secretKey: maum-record
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springdoc: DEBUG
