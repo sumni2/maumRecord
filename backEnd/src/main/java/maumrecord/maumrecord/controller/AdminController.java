@@ -157,4 +157,10 @@ public class AdminController {
         return ResponseEntity.ok(dashboardService.getAdminDashboardData());
     }
 
+    @GetMapping("/users/{id}/healing-logs")
+    public ResponseEntity<List<UserHealingLogResponse>> getUserHealingLogs(@PathVariable Long id) {
+        List<UserHealingLogResponse> logs = dashboardService.getUserHealingLogs(id);
+        return ResponseEntity.ok(logs);
+    }
+
 }

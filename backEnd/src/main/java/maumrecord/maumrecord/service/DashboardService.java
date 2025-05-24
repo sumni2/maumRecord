@@ -28,7 +28,7 @@ public class DashboardService {
 
 
     // 관리자 대시보드 화면 필요 데이터
-    public DashboardResponse getAdminDashboardData(){
+    public DashboardResponse getAdminDashboardData() {
 
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
@@ -50,7 +50,7 @@ public class DashboardService {
             userTrends.add(DashboardResponse.UserTrendDto.builder()
                     .date(date.toString())
                     .signups(userRepository.countByCreatedAtBetween(start, end))
-                    .activeUsers(userActivityLogRepository.countByActivityTimeBetween(start, end))
+                    .activeUsers(userActivityLogRepository.countDistinctUsersByActivityTimeBetween(start, end))
                     .build());
         }
 
@@ -60,26 +60,30 @@ public class DashboardService {
             LocalDate date = LocalDate.now().minusDays(i);
             LocalDateTime start = date.atStartOfDay();
             LocalDateTime end = date.plusDays(1).atStartOfDay();
-//            List<DiaryHealingProgram> dailyPrograms = diaryHealingProgramRepository.findByDiary_CreatedAtBetween(start, end);
 
-//            Map<String, Long> usageMap = dailyPrograms.stream()
-//                    .collect(Collectors.groupingBy(
-//                            p -> p.getHealingProgram().getTitle(),
-//                            Collectors.counting()
-//                    ));
+            List<Diary> diaries = diaryRepository.findByCreatedAtBetween(start, end);
+            // 프로그램 ID → 제목 → 사용 횟수 집계
+            Map<String, Long> usageMap = new HashMap<>();
+            for (Diary diary : diaries) {
+                for (Long programId : diary.getHealingProgramIds()) {
+                    healingRepository.findById(programId).ifPresent(program -> {
+                        String title = program.getTitle();
+                        usageMap.put(title, usageMap.getOrDefault(title, 0L) + 1);
+                    });
+                }
+            }
 
             healingUsageList.add(DashboardResponse.HealingUsageDto.builder()
                     .date(date.toString())
-//                    .programUsage(usageMap)
+                    .usage(usageMap)
                     .build());
-        }
 
+        }
         return DashboardResponse.builder()
                 .stats(stats)
                 .userTrends(userTrends)
                 .healingUsage(healingUsageList)
                 .build();
-
     }
 
     public List<MonthlyEmotionResponse> getMonthlyPositiveRates(User user, int limit) {
@@ -206,7 +210,21 @@ public class DashboardService {
                         .build())
                 .collect(Collectors.toList());
     }
+    public List<UserHealingLogResponse> getUserHealingLogs(Long userId) {
+        List<Diary> diaries = diaryRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
+        return diaries.stream()
+                .flatMap(diary -> {
+                    List<Long> ids = diary.getHealingProgramIds();
+                    List<HealingProgram> programs = healingRepository.findAllById(ids);
 
+                    return programs.stream()
+                            .map(p -> UserHealingLogResponse.builder()
+                                    .program(p.getTitle()) // 또는 getName()
+                                    .usedAt(diary.getCreatedAt().toString())
+                                    .build());
+                })
+                .collect(Collectors.toList());
+    }
 }
 

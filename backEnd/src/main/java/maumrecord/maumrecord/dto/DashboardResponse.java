@@ -45,6 +45,6 @@ public class DashboardResponse {
     @Builder
     public static class HealingUsageDto {
         private String date;
-        private Map<String, Long> programUsage;  // "명상": 8, "요가": 4 같은 형식
+        private Map<String, Long> usage; // "명상": 8, "요가": 4 같은 형식
     }
 }
